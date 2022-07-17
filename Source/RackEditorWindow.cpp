@@ -12,20 +12,24 @@
 #include "RackEditorWindow.h"
 
 //==============================================================================
-RackEditorWindow::RackEditorWindow(ProcessingManager& pm) :
+RackEditorWindow::RackEditorWindow(PropertiesFile* user_settings,
+                                   ProcessingManager& pm) :
     juce::DocumentWindow("Edit Plugin Configuration",
                          juce::Colours::grey,
                          DocumentWindow::TitleBarButtons::closeButton,
                          false),
+    user_settings_(user_settings),
     pm_(pm)
 {
   const File f = File("/Users/andreworals/Downloads/dmpf");
-  setContentOwned(new PluginListComponent(pm_.getPluginFormatManager(),
-                                          pm_.getAvailablePlugins(),
-                                          f,
-                                          nullptr,
-                                          true),
-                  true);
+  setContentOwned(
+      new PluginListComponent(pm_.getPluginFormatManager(),
+                              pm_.getAvailablePlugins(),
+                              f,
+                              user_settings_,
+                              true),
+      true
+  );
   setResizable(true, true);
   addToDesktop();
   setVisible(true);

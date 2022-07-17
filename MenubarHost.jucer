@@ -3,7 +3,7 @@
 <JUCERPROJECT id="vLmCTM" name="MenubarHost" projectType="guiapp" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" version="0.0.1"
               companyName="Andrew Orals" companyWebsite="https://andreworals.com"
-              cppLanguageStandard="latest">
+              cppLanguageStandard="20" defines="JUCE_PLUGINHOST_AU&#10;JUCE_PLUGINHOST_LADSPA&#10;">
   <MAINGROUP id="mYUSsV" name="MenubarHost">
     <GROUP id="{506E2CF7-42A3-A61D-D9EB-535A002D0FC8}" name="Resources">
       <FILE id="OOqdzx" name="GenericSpeaker.icns" compile="0" resource="1"
@@ -12,6 +12,14 @@
             file="Resources/GenericSpeaker.png"/>
     </GROUP>
     <GROUP id="{EEBF788C-4AEC-3C6F-27FA-933B65A9FD76}" name="Source">
+      <FILE id="dEhYs3" name="MenubarHostApplication.cpp" compile="1" resource="0"
+            file="Source/MenubarHostApplication.cpp"/>
+      <FILE id="o5WK9t" name="MenubarHostApplication.h" compile="0" resource="0"
+            file="Source/MenubarHostApplication.h"/>
+      <FILE id="jAVZ4i" name="PluginScannerSubprocess.hpp" compile="0" resource="0"
+            file="Source/PluginScannerSubprocess.hpp"/>
+      <FILE id="zS4Ado" name="CustomPluginScanner.hpp" compile="0" resource="0"
+            file="Source/CustomPluginScanner.hpp"/>
       <FILE id="vgvms8" name="SettingsWindow.hpp" compile="0" resource="0"
             file="Source/SettingsWindow.hpp"/>
       <FILE id="B2Eyn7" name="RackEditorWindow.cpp" compile="1" resource="0"

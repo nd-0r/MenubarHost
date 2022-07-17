@@ -9,39 +9,45 @@
 */
 
 #pragma once
+#include <pthread.h>
 #include <JuceHeader.h>
+#include "CustomPluginScanner.hpp"
 
-// Create a plugin selector class
-// Create plugin editor class
-// both these windows will be change listeners for the active and available plugins lists
 
 using namespace juce;
 using NodeID = juce::AudioProcessorGraph::NodeID;
 
+class MenubarHostApplication;
+
 struct PluginData
 {
   PluginDescription                    description;
-  std::unique_ptr<AudioPluginInstance> instance;
+  AudioProcessorGraph::Node::Ptr       plugin_node;
+  bool bypassed = false;
 };
 
 class ProcessingManager : public ChangeListener
 {
 public:
-  ProcessingManager(juce::AudioDeviceManager& device_manager);
+  ProcessingManager(ApplicationProperties& app_properties,
+                    juce::AudioDeviceManager& device_manager);
   ~ProcessingManager();
-//======core======
+
   juce::String initialize();
-  void addPlugin(PluginDescription& plugin);
-  void insertPlugin(PluginDescription& plugin, unsigned int idx);
+  void addPlugin(unsigned int plugin_idx);
+  void insertPlugin(unsigned int plugin_idx, unsigned int stack_idx);
   void removePlugin(PluginDescription& plugin);
-//======callbacks======
+
   void changeListenerCallback(ChangeBroadcaster* source) override;
-//======getters======
+
   AudioPluginFormatManager& getPluginFormatManager();
   KnownPluginList& getAvailablePlugins();
-  const Array<PluginData*>& getActivePlugins() const;
+  const Array<PluginData*, CriticalSection> getActivePlugins() const;
 private:
   void loadActivePlugins(bool reload_all);
+  void pluginCreateCallback(std::unique_ptr<AudioPluginInstance> instance,
+                            PluginData& plugin_data,
+                            const juce::String& error);
   void addActivePluginsToGraph();
   bool connectNodeToNode(AudioProcessorGraph::NodeID from, int from_chans,
                          AudioProcessorGraph::NodeID to, int to_chans);
@@ -49,16 +55,22 @@ private:
   //======plugins======
   AudioPluginFormatManager format_manager_;
   KnownPluginList available_plugins_;
-  Array<PluginData*> active_plugins_order_;
-  Array<PluginData> active_plugins_;
+  Array<PluginData*, CriticalSection> active_plugins_order_;
+  Array<PluginData, CriticalSection> active_plugins_;
   static const auto kPluginSortMethod =
-  KnownPluginList::SortMethod::sortByManufacturer;
+      KnownPluginList::SortMethod::sortByManufacturer;
   static const auto kNumPluginLoadingThreads = 4;
-  static const auto kPluginLoadingTimeoutMS  = 1000;
+  static const auto kPluginLoadingTimeoutMS  = 100000;
+  //======synchronization======
+  pthread_cond_t plugin_load_condvar;
+  pthread_mutex_t condvar_mutex;
+  unsigned int num_processed_plugins = 0;
   //======processing graph======
   AudioDeviceManager& device_manager_;
   AudioProcessorGraph graph_;
   AudioProcessorPlayer player_;
   const NodeID kInputID = NodeID(0x0);
   const NodeID kOutputID = NodeID(0xffffffff);
+  //======state references======
+  ApplicationProperties& app_properties_;
 };

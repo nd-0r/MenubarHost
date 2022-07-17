@@ -12,6 +12,8 @@
 
 #include <JuceHeader.h>
 
+using namespace juce;
+
 class SettingsWindow : public juce::DocumentWindow
 {
 public:

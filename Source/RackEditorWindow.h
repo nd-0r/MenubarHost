@@ -19,11 +19,12 @@
 class RackEditorWindow  : public juce::DocumentWindow
 {
 public:
-  RackEditorWindow(ProcessingManager& pm);
+  RackEditorWindow(PropertiesFile* user_settings, ProcessingManager& pm);
   ~RackEditorWindow() override;
 
   void closeButtonPressed() override;
 private:
+  PropertiesFile* user_settings_;
   ProcessingManager& pm_;
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RackEditorWindow)
 };
