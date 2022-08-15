@@ -24,7 +24,7 @@ const juce::String MenubarHostApplication::getApplicationVersion()
 
 ApplicationProperties& MenubarHostApplication::getApplicationProperties()
 {
-  return appProperties;
+  return *appProperties;
 }
 
 bool MenubarHostApplication::moreThanOneInstanceAllowed()
@@ -49,11 +49,15 @@ void MenubarHostApplication::initialise (const juce::String& commandLine)
   propOptions.applicationName     = getApplicationName();
   propOptions.filenameSuffix      = "settings";
   propOptions.osxLibrarySubFolder = "Preferences";
-  appProperties.setStorageParameters(propOptions);
+  appProperties.reset(new ApplicationProperties());
+  appProperties->setStorageParameters(propOptions);
   
-  menubarComponent = std::unique_ptr<MenubarComponent>(
-      new MenubarComponent(*this, processingManager, deviceManager)
-  );
+  deviceManager = std::make_unique<AudioDeviceManager>();
+  processingManager = std::make_unique<ProcessingManager>(*appProperties,
+                                                          *deviceManager);
+  menubarComponent = std::make_unique<MenubarComponent>(*this,
+                                                        *processingManager,
+                                                        *deviceManager);
 }
 
 void MenubarHostApplication::shutdown()

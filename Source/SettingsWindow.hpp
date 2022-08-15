@@ -17,12 +17,15 @@ using namespace juce;
 class SettingsWindow : public juce::DocumentWindow
 {
 public:
-  SettingsWindow(AudioDeviceManager& device_manager) :
+  SettingsWindow(AudioDeviceManager& device_manager,
+                 ApplicationProperties& app_properties) :
       DocumentWindow("Settings",
                      Colours::grey,
                      DocumentWindow::TitleBarButtons::closeButton,
                      false),
-      device_selector_(device_manager,
+      device_manager_(device_manager),
+      app_properties_(app_properties),
+      device_selector_(device_manager_,
                        0,     // minimum input channels
                        2,   // maximum input channels
                        1,     // minimum output channels
@@ -35,6 +38,7 @@ public:
   {
     setContentOwned(&device_selector_, false);
     cbs_.setSizeLimits(600, 400, 600, 600);
+    setUsingNativeTitleBar(true);
     setResizable(true, true);
     setConstrainer(&cbs_);
     addToDesktop();
@@ -43,9 +47,15 @@ public:
 
   void closeButtonPressed() override
   {
+    auto state = device_manager_.createStateXml();
+    app_properties_.getUserSettings()->setValue(
+        "audioDeviceState", state.get()
+    );
     delete this;
   }
 private:
+  AudioDeviceManager& device_manager_;
+  ApplicationProperties& app_properties_;
   ComponentBoundsConstrainer cbs_;
   AudioDeviceSelectorComponent device_selector_;
 };

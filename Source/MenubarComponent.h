@@ -3,8 +3,10 @@
 #include <JuceHeader.h>
 #include "MenubarHostApplication.h"
 #include "ProcessingManager.h"
+#include "PluginListWindow.h"
 #include "RackEditorWindow.h"
 #include "SettingsWindow.hpp"
+#include "PluginWindow.h"
 
 class MenubarComponent  : public juce::SystemTrayIconComponent,
                           public juce::MenuBarModel,
@@ -20,12 +22,6 @@ public:
   juce::StringArray getMenuBarNames() override;
   juce::PopupMenu getMenuForIndex(int topLevelMenuIndex,
                                   const juce::String& menuName) override;
-  /**
-   *  Menu indexing scheme:
-   *  Active plugins: 3..n
-   *  Preferences: 2
-   *  Quit: 1
-   */
   void menuItemSelected(int menuItemID, int topLevelMenuIndex) override;
   //====end MenuBarModel Implementations====
   
@@ -50,14 +46,19 @@ private:
     }
   };
  
-  void handleOpenPlugin(juce::PluginDescription& pd);
+  PluginWindow* getOrCreatePluginWindow(juce::AudioProcessorGraph::Node* p,
+                                        PluginWindow::Type t);
+  bool closeOpenPluginWindows();
+  void handleOpenPlugin(juce::AudioProcessorGraph::Node* p);
   void addActivePluginsToMenu(juce::PopupMenu& popup_menu);
   void addAvailablePluginsToMenu(juce::PopupMenu& popup_menu);
  
   MenubarHostApplication& app_;
   ProcessingManager& pm_;
   juce::AudioDeviceManager& adm_;
-  juce::Component::SafePointer<RackEditorWindow> rack_editor_window_;
+  juce::Component::SafePointer<PluginListWindow> plugin_list_window_;
   juce::Component::SafePointer<SettingsWindow> settings_window_;
+  juce::Component::SafePointer<RackEditorWindow> plugin_rack_editor_;
+  juce::OwnedArray<PluginWindow> active_plugin_windows_;
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MenubarComponent)
 };

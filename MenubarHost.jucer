@@ -12,6 +12,7 @@
             file="Resources/GenericSpeaker.png"/>
     </GROUP>
     <GROUP id="{EEBF788C-4AEC-3C6F-27FA-933B65A9FD76}" name="Source">
+      <FILE id="y4hmoH" name="PluginWindow.h" compile="0" resource="0" file="Source/PluginWindow.h"/>
       <FILE id="dEhYs3" name="MenubarHostApplication.cpp" compile="1" resource="0"
             file="Source/MenubarHostApplication.cpp"/>
       <FILE id="o5WK9t" name="MenubarHostApplication.h" compile="0" resource="0"
@@ -22,16 +23,18 @@
             file="Source/CustomPluginScanner.hpp"/>
       <FILE id="vgvms8" name="SettingsWindow.hpp" compile="0" resource="0"
             file="Source/SettingsWindow.hpp"/>
-      <FILE id="B2Eyn7" name="RackEditorWindow.cpp" compile="1" resource="0"
-            file="Source/RackEditorWindow.cpp"/>
-      <FILE id="K7oQq8" name="RackEditorWindow.h" compile="0" resource="0"
-            file="Source/RackEditorWindow.h"/>
+      <FILE id="B2Eyn7" name="PluginListWindow.cpp" compile="1" resource="0"
+            file="Source/PluginListWindow.cpp"/>
+      <FILE id="K7oQq8" name="PluginListWindow.h" compile="0" resource="0"
+            file="Source/PluginListWindow.h"/>
       <FILE id="NVBEFa" name="ProcessingManager.h" compile="0" resource="0"
             file="Source/ProcessingManager.h"/>
       <FILE id="ALg7Kl" name="ProcessingManager.cpp" compile="1" resource="0"
             file="Source/ProcessingManager.cpp"/>
-      <FILE id="zgJmh3" name="HostWindow.cpp" compile="1" resource="0" file="Source/HostWindow.cpp"/>
-      <FILE id="RJ0FgN" name="HostWindow.h" compile="0" resource="0" file="Source/HostWindow.h"/>
+      <FILE id="zgJmh3" name="RackEditorWindow.cpp" compile="1" resource="0"
+            file="Source/RackEditorWindow.cpp"/>
+      <FILE id="RJ0FgN" name="RackEditorWindow.h" compile="0" resource="0"
+            file="Source/RackEditorWindow.h"/>
       <FILE id="QeKXTf" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="uwsasZ" name="MenubarComponent.h" compile="0" resource="0"
             file="Source/MenubarComponent.h"/>
@@ -79,7 +82,10 @@
         <MODULEPATH id="juce_gui_extra" path="../../../../../Applications/JUCE/modules"/>
       </MODULEPATHS>
     </VS2019>
-    <XCODE_MAC targetFolder="Builds/MacOSX">
+    <XCODE_MAC targetFolder="Builds/MacOSX" microphonePermissionNeeded="1" appSandbox="1"
+               appSandboxOptions="com.apple.security.device.microphone,com.apple.security.files.user-selected.read-only,com.apple.security.files.user-selected.read-write,com.apple.security.temporary-exception.audio-unit-host"
+               hardenedRuntime="1" hardenedRuntimeOptions="com.apple.security.device.audio-input"
+               microphonePermissionsText="This app requires audio input.">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="MenubarHost"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="MenubarHost"/>

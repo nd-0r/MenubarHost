@@ -10,23 +10,13 @@ MenubarComponent::MenubarComponent(MenubarHostApplication& app,
   setIconImage(image, image);
   setIconTooltip(app_.getApplicationName());
   juce::MenuBarModel::setMacMainMenu(this);
-  // initialize processing manager
-  juce::String err_text = pm_.initialize();
-  if (!err_text.isEmpty()) {
-    juce::AlertWindow::showMessageBoxAsync(juce::AlertWindow::WarningIcon,
-                                           "Error",
-                                           "Cannot find audio devices",
-                                           "Quit",
-                                           nullptr,
-                                           this);
-  }
   setIconTooltip(juce::JUCEApplication::getInstance()->getApplicationName());
 }
 
 MenubarComponent::~MenubarComponent()
 {
   settings_window_.deleteAndZero();
-  rack_editor_window_.deleteAndZero();
+  plugin_list_window_.deleteAndZero();
   setMacMainMenu(nullptr);
 }
 
@@ -43,7 +33,6 @@ juce::PopupMenu MenubarComponent::getMenuForIndex(int topLevelMenuIndex,
 
 void MenubarComponent::menuItemSelected(int menuItemID, int topLevelMenuIndex)
 {
-  std::cout << "Menu ID: " << menuItemID << std::endl;
   switch (menuItemID)
   {
     case 1: // Quit
@@ -51,20 +40,16 @@ void MenubarComponent::menuItemSelected(int menuItemID, int topLevelMenuIndex)
       break;
     case 2: // Preferences
       if (!settings_window_.getComponent())
-        settings_window_ = new SettingsWindow(adm_);
+        settings_window_ = new SettingsWindow(adm_,
+                                              app_.getApplicationProperties());
       break;
-    default: // Plugin choice
-      if (menuItemID < 67) // Active plugin choice
-      {
-        juce::String selected_plugin = pm_.getActivePlugins()[menuItemID - 3]->description.name;
-        std::cout << selected_plugin << std::endl;
-      }
-      else // Available plugin choice
-      {
-        pm_.addPlugin(KnownPluginList::getIndexChosenByMenu(
-            pm_.getAvailablePlugins().getTypes(), menuItemID
-        ));
-      }
+    case 3:
+      if (!plugin_rack_editor_.getComponent())
+        plugin_rack_editor_ = new RackEditorWindow(pm_.getActivePlugins());
+    default: // Available plugin choice
+      pm_.addPlugin(KnownPluginList::getIndexChosenByMenu(
+          pm_.getAvailablePlugins().getTypes(), menuItemID
+      ));
   }
 }
 
@@ -81,16 +66,18 @@ void MenubarComponent::mouseDown(const juce::MouseEvent& event)
                                  pm_.getAvailablePlugins().getTypes(),
                                  KnownPluginList::SortMethod::sortByCategory);
       plugin_stack_popup.addSubMenu("Add plugin", available_plugins_submenu);
-
       plugin_stack_popup.addSeparator();
-
+      plugin_stack_popup.addItem(3, "Edit Configuration");
       plugin_stack_popup.addItem(2, "Preferences");
       plugin_stack_popup.addItem(1, "Quit");
+
       showDropdownMenu(plugin_stack_popup);
     }
     else if (event.mods.isRightButtonDown())
     {
-      rack_editor_window_ = new RackEditorWindow(app_.getApplicationProperties().getUserSettings(), pm_);
+      plugin_list_window_ = new PluginListWindow(
+          app_.getApplicationProperties().getUserSettings(), pm_
+      );
     }
 }
 
@@ -104,19 +91,77 @@ void MenubarComponent::modalStateFinished(int returnValue)
 }
 
 // private =====================================================================
-void MenubarComponent::handleOpenPlugin(juce::PluginDescription& pd)
+
+// From JUCE AudioPluginHost
+// https://github.com/juce-framework/JUCE/blob/master/extras/AudioPluginHost/Source/UI/MainHostWindow.cpp
+PluginWindow* MenubarComponent::getOrCreatePluginWindow(
+    juce::AudioProcessorGraph::Node* p,
+    PluginWindow::Type t)
 {
-  // TODO
+    jassert (p != nullptr);
+
+    for (auto* w : active_plugin_windows_)
+        if (w->node.get() == p && w->type == t)
+            return w;
+
+    if (auto* processor = p->getProcessor())
+    {
+        if (auto* plugin = dynamic_cast<AudioPluginInstance*>(processor))
+        {
+            auto description = plugin->getPluginDescription();
+
+            return active_plugin_windows_.add(
+                new PluginWindow(p, t, active_plugin_windows_));
+        }
+    }
+
+    return nullptr;
+}
+
+bool MenubarComponent::closeOpenPluginWindows()
+{
+    bool wasEmpty = active_plugin_windows_.isEmpty();
+    active_plugin_windows_.clear();
+    return !wasEmpty;
+}
+// End from JUCE AudioPluginHost
+
+void MenubarComponent::handleOpenPlugin(juce::AudioProcessorGraph::Node* p)
+{
+  if (auto* w = getOrCreatePluginWindow(p, PluginWindow::Type::normal))
+    w->toFront(true);
 }
 
 void MenubarComponent::addActivePluginsToMenu(juce::PopupMenu& popup_menu)
 {
-  auto& active_plugins = pm_.getActivePlugins();
-  // Offset to make room for 'Preferences' and 'Quit'
-  // 0 reserved to mean 'Nothing selected'
-  int active_plugin_idx = 3;
-  for (auto& plugin : active_plugins)
+  for (auto& plugin : pm_.getActivePlugins())
   {
-    popup_menu.addItem(active_plugin_idx++, plugin->description.name);
+    auto active_plugin_options = std::make_unique<juce::PopupMenu>();
+    active_plugin_options->addItem("Open",
+                                   [this, &plugin] ()
+                                   {
+                                     if (plugin->plugin_node && // plugin loaded
+                                         plugin->plugin_node->getProcessor()->hasEditor())
+                                       handleOpenPlugin(plugin->plugin_node.get());
+                                   }
+    );
+    active_plugin_options->addItem("Remove",
+                                   [this, &plugin] ()
+                                   {
+                                     pm_.removePlugin(plugin.get());
+                                   }
+    );
+//    active_plugin_options->addItem(plugin->bypassed ? "Enable" : "Disable",
+//                                   [&plugin] ()
+//                                   {
+//                                     // plugin->bypassed = !plugin->bypassed; // TODO
+//                                   }
+//    );
+    
+    auto plugin_item = PopupMenu::Item(plugin->description.name);
+    // plugin_item.isEnabled = !plugin->bypassed;
+    plugin_item.subMenu = std::move(active_plugin_options);
+
+    popup_menu.addItem(plugin_item);
   }
 }

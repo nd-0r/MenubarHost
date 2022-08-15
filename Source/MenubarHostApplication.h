@@ -43,9 +43,9 @@ public:
 
 private:
   std::unique_ptr<PluginScannerSubprocess> storedScannerSubprocess;
+
+  std::unique_ptr<ApplicationProperties> appProperties;
+  std::unique_ptr<AudioDeviceManager> deviceManager;
+  std::unique_ptr<ProcessingManager> processingManager;
   std::unique_ptr<MenubarComponent> menubarComponent;
-  AudioDeviceManager deviceManager;
-  ApplicationProperties appProperties;
-  ProcessingManager processingManager =
-      ProcessingManager{appProperties, deviceManager};
 };

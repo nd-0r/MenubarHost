@@ -11,6 +11,7 @@
 #pragma once
 #include <pthread.h>
 #include <JuceHeader.h>
+#include <list>
 #include "CustomPluginScanner.hpp"
 
 
@@ -21,9 +22,11 @@ class MenubarHostApplication;
 
 struct PluginData
 {
+  PluginData(PluginDescription& plug_desc,
+             AudioProcessorGraph::Node::Ptr node) :
+      description(plug_desc), plugin_node(node) { }
   PluginDescription                    description;
   AudioProcessorGraph::Node::Ptr       plugin_node;
-  bool bypassed = false;
 };
 
 class ProcessingManager : public ChangeListener
@@ -33,30 +36,33 @@ public:
                     juce::AudioDeviceManager& device_manager);
   ~ProcessingManager();
 
-  juce::String initialize();
+  void initialize();
   void addPlugin(unsigned int plugin_idx);
   void insertPlugin(unsigned int plugin_idx, unsigned int stack_idx);
-  void removePlugin(PluginDescription& plugin);
+  void removePlugin(const PluginData* plugin);
 
   void changeListenerCallback(ChangeBroadcaster* source) override;
 
   AudioPluginFormatManager& getPluginFormatManager();
   KnownPluginList& getAvailablePlugins();
-  const Array<PluginData*, CriticalSection> getActivePlugins() const;
+  std::list<std::unique_ptr<PluginData>>& getActivePlugins();
 private:
   void loadActivePlugins(bool reload_all);
   void pluginCreateCallback(std::unique_ptr<AudioPluginInstance> instance,
                             PluginData& plugin_data,
                             const juce::String& error);
   void addActivePluginsToGraph();
-  bool connectNodeToNode(AudioProcessorGraph::NodeID from, int from_chans,
-                         AudioProcessorGraph::NodeID to, int to_chans);
+  bool connectNodeToNode(AudioProcessorGraph::NodeID from,
+                         AudioProcessorGraph::NodeID to,
+                         int from_chans_min,
+                         int from_chans_max,
+                         int to_chans_min,
+                         int to_chans_max);
   using NodePtr = AudioProcessorGraph::Node::Ptr;
   //======plugins======
   AudioPluginFormatManager format_manager_;
   KnownPluginList available_plugins_;
-  Array<PluginData*, CriticalSection> active_plugins_order_;
-  Array<PluginData, CriticalSection> active_plugins_;
+  std::list<std::unique_ptr<PluginData>> active_plugins_ordered_;
   static const auto kPluginSortMethod =
       KnownPluginList::SortMethod::sortByManufacturer;
   static const auto kNumPluginLoadingThreads = 4;
@@ -64,13 +70,18 @@ private:
   //======synchronization======
   pthread_cond_t plugin_load_condvar;
   pthread_mutex_t condvar_mutex;
-  unsigned int num_processed_plugins = 0;
+  pthread_mutex_t active_plugin_list_mutex;
+  size_t num_processed_plugins = 0;
   //======processing graph======
   AudioDeviceManager& device_manager_;
   AudioProcessorGraph graph_;
   AudioProcessorPlayer player_;
-  const NodeID kInputID = NodeID(0x0);
-  const NodeID kOutputID = NodeID(0xffffffff);
+  const uint32 kMaxPluginUid = 0xfffffffb;
+  const NodeID kAudioInputID = NodeID(kMaxPluginUid + 1);
+  const NodeID kAudioOutputID = NodeID(kMaxPluginUid + 2);
+  const NodeID kMidiInputID = NodeID(kMaxPluginUid + 3);
+  const NodeID kMidiOutputID = NodeID(kMaxPluginUid + 4);
+  uint32 curr_node_uid = 0x0;
   //======state references======
   ApplicationProperties& app_properties_;
 };
