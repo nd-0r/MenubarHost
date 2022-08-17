@@ -11,6 +11,57 @@
 #include "RackEditorWindow.h"
 
 //==============================================================================
+
+
+RackEntry::RackEntry(const juce::String& text,
+          int row_num,
+          int height,
+          int width,
+          bool selected,
+          const DragDropCallback& drag_drop_callback) : 
+    text_(text), row_num_(row_num), height_(height), width_(width),
+    drag_drop_callback_(drag_drop_callback)
+{
+}
+
+RackEntry::~RackEntry()
+{
+}
+
+bool RackEntry::isInterestedInDragSource(const SourceDetails& dragSourceDetails)
+{
+  return dragSourceDetails.sourceComponent != this &&
+         dragSourceDetails.description == juce::var(PLUGIN_DRAG_SOURCE_ID);
+}
+
+void RackEntry::itemDropped(const SourceDetails& dragSourceDetails)
+{
+  jassert(isInterestedInDragSource(dragSourceDetails));
+
+  const RackEntry* source = 
+    static_cast<RackEntry*>(dragSourceDetails.sourceComponent.get());
+
+  drag_drop_callback_({source->row_num_, row_num_});
+}
+
+void RackEntry::paint(Graphics& g)
+{
+  if (text_.isNotEmpty())
+  {
+    const auto defaultTextColour =
+      owner_.findColour(juce::ListBox::textColourId);
+    g.setColour (columnId == nameCol ?
+                   defaultTextColour
+                   :
+                   defaultTextColour.interpolatedWith (juce::Colours::transparentBlack, 0.3f));
+    g.setFont(juce::Font((float) height_ * 0.7f, juce::Font::bold));
+    g.drawFittedText(
+      text_, 4, 0, width_ - 6, height_, juce::Justification::centredLeft, 1, 0.9f);
+  }
+}
+
+//==============================================================================
+
 PluginRack::PluginRack(const RackEditorWindow& owner,
                        std::list<std::unique_ptr<PluginData>>& active_plugin_order) :
     owner_(owner),
@@ -69,20 +120,17 @@ void PluginRack::paintCell(juce::Graphics& g,
     }
   }
 
-  if (text.isNotEmpty())
-  {
-    const auto defaultTextColour =
-      owner_.findColour(juce::ListBox::textColourId);
-    g.setColour (columnId == nameCol ?
-                   defaultTextColour
-                   :
-                   defaultTextColour.interpolatedWith (juce::Colours::transparentBlack, 0.3f));
-    g.setFont(juce::Font((float) height * 0.7f, juce::Font::bold));
-    g.drawFittedText(
-      text, 4, 0, width - 6, height, juce::Justification::centredLeft, 1, 0.9f);
-  }
+  // TODO
 }
 
+
+juce::var PluginRack::getDragSourceDescription(
+    const juce::SparseSet<int>& currentlySelectedRows)
+{
+  return juce::var(PLUGIN_DRAG_SOURCE_ID);
+}
+
+//==============================================================================
 
 RackEditorWindow::RackEditorWindow(
     std::list<std::unique_ptr<PluginData>>& active_plugin_order) :
@@ -102,11 +150,11 @@ RackEditorWindow::RackEditorWindow(
   header.addColumn("Category", PluginRack::categoryCol, 100, 100, 200);
   header.addColumn("Manufacturer", PluginRack::manufacturerCol, 200, 100, 300);
 
-  table_list_box->setHeaderHeight(22);
-  table_list_box->setRowHeight(20);
+  table_list_box->setHeaderHeight(HEADER_HEIGHT);
+  table_list_box->setRowHeight(ROW_HEIGHT);
   table_list_box->setMultipleSelectionEnabled(false);
 
-  setSize(400, 600);
+  setSize(610, HEADER_HEIGHT + ROW_HEIGHT * static_cast<int>(active_plugin_order.size()));
   auto r = getLocalBounds().reduced(2);
   table_list_box->setBounds(r);
 

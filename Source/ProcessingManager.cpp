@@ -10,7 +10,6 @@
 
 /*
 TODO:
- - make the audio/midi input actually work
  - reorder plugins UI
  - save window preferences globally
  - savefile
@@ -20,11 +19,12 @@ TODO:
  - integrated plugin scanning (menubar item)
  - test MIDI keyboard
  - make menu not disappear when adding plugins
+ - menu option to mute input
+ - menu option to reload plugins
  - unit tests
- 
+
  - semver
  - linting
- - build configuration for neovim
  - CI/CD
  */
 

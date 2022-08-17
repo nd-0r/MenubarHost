@@ -103,3 +103,4 @@ JuceLibraryCode
 
 *.swp
 *.swo
+.cache
