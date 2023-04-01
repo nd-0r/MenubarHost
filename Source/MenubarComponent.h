@@ -60,5 +60,6 @@ private:
   juce::Component::SafePointer<SettingsWindow> settings_window_;
   juce::Component::SafePointer<RackEditorWindow> plugin_rack_editor_;
   juce::OwnedArray<PluginWindow> active_plugin_windows_;
+  juce::TemporaryFile failed_plugins_file_;
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MenubarComponent)
 };

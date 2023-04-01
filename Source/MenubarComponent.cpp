@@ -76,7 +76,9 @@ void MenubarComponent::mouseDown(const juce::MouseEvent& event)
     else if (event.mods.isRightButtonDown())
     {
       plugin_list_window_ = new PluginListWindow(
-          app_.getApplicationProperties().getUserSettings(), pm_
+        app_.getApplicationProperties().getUserSettings(),
+        pm_,
+        failed_plugins_file_.getFile()
       );
     }
 }

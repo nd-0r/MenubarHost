@@ -48,12 +48,12 @@ void RackEntry::paint(Graphics& g)
 {
   if (text_.isNotEmpty())
   {
-    const auto defaultTextColour =
-      owner_.findColour(juce::ListBox::textColourId);
-    g.setColour (columnId == nameCol ?
-                   defaultTextColour
-                   :
-                   defaultTextColour.interpolatedWith (juce::Colours::transparentBlack, 0.3f));
+//    const auto defaultTextColour =
+//      owner_.findColour(juce::ListBox::textColourId);
+//    g.setColour (columnId == nameCol ?
+//                   defaultTextColour
+//                   :
+//                   defaultTextColour.interpolatedWith (juce::Colours::transparentBlack, 0.3f));
     g.setFont(juce::Font((float) height_ * 0.7f, juce::Font::bold));
     g.drawFittedText(
       text_, 4, 0, width_ - 6, height_, juce::Justification::centredLeft, 1, 0.9f);

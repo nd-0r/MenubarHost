@@ -13,19 +13,20 @@
 
 //==============================================================================
 PluginListWindow::PluginListWindow(PropertiesFile* user_settings,
-                                   ProcessingManager& pm) :
+                                   ProcessingManager& pm,
+                                   const juce::File& failed_plugins_file) :
     juce::DocumentWindow("Edit Plugin Configuration",
                          juce::Colours::grey,
                          DocumentWindow::TitleBarButtons::closeButton,
                          false),
     user_settings_(user_settings),
-    pm_(pm)
+    pm_(pm),
+    failed_plugins_file_(failed_plugins_file)
 {
-  const File f = File("/Users/andreworals/Downloads/dmpf");
   setContentOwned(
       new PluginListComponent(pm_.getPluginFormatManager(),
                               pm_.getAvailablePlugins(),
-                              f,
+                              failed_plugins_file_,
                               user_settings_,
                               true),
       true
