@@ -9,14 +9,20 @@
 */
 
 /*
+FIXES:
+ - close window and cleanup when plugin removed
+ - connect midi to all plugins which accept midi input
+   - add option to chain midi
+
 TODO:
+ - broadcast audio output
+ - integrated plugin scanning (menubar item)
  - reorder plugins UI
  - save window preferences globally
  - savefile
    - plugin state
    - active plugins
    - audio/midi device configuration
- - integrated plugin scanning (menubar item)
  - test MIDI keyboard
  - make menu not disappear when adding plugins
  - menu option to mute input

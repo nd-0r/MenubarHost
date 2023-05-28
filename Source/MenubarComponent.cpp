@@ -134,6 +134,19 @@ void MenubarComponent::handleOpenPlugin(juce::AudioProcessorGraph::Node* p)
     w->toFront(true);
 }
 
+void MenubarComponent::handleRemovePlugin(juce::AudioProcessorGraph::Node* p)
+{
+  std::vector<unsigned int> indices_to_remove;
+  for (unsigned int idx = 0; idx < active_plugin_windows_.size(); ++idx)
+  {
+    if (active_plugin_windows_[idx]->node == p)
+      indices_to_remove.push_back(idx);
+  }
+
+  for (auto idx : indices_to_remove)
+    active_plugin_windows_.remove(idx, true);
+}
+
 void MenubarComponent::addActivePluginsToMenu(juce::PopupMenu& popup_menu)
 {
   for (auto& plugin : pm_.getActivePlugins())
@@ -150,6 +163,7 @@ void MenubarComponent::addActivePluginsToMenu(juce::PopupMenu& popup_menu)
     active_plugin_options->addItem("Remove",
                                    [this, &plugin] ()
                                    {
+                                     handleRemovePlugin(plugin->plugin_node.get());
                                      pm_.removePlugin(plugin.get());
                                    }
     );

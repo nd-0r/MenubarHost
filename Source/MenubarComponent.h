@@ -50,6 +50,7 @@ private:
                                         PluginWindow::Type t);
   bool closeOpenPluginWindows();
   void handleOpenPlugin(juce::AudioProcessorGraph::Node* p);
+  void handleRemovePlugin(juce::AudioProcessorGraph::Node* p);
   void addActivePluginsToMenu(juce::PopupMenu& popup_menu);
   void addAvailablePluginsToMenu(juce::PopupMenu& popup_menu);
  
