@@ -10,13 +10,13 @@
 
 /*
 FIXES:
- - close window and cleanup when plugin removed
  - connect midi to all plugins which accept midi input
    - add option to chain midi
 
 TODO:
  - broadcast audio output
  - integrated plugin scanning (menubar item)
+
  - reorder plugins UI
  - save window preferences globally
  - savefile
@@ -28,10 +28,6 @@ TODO:
  - menu option to mute input
  - menu option to reload plugins
  - unit tests
-
- - semver
- - linting
- - CI/CD
  */
 
 #include "ProcessingManager.h"
